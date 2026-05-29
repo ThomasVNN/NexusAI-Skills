@@ -1,0 +1,42 @@
+# NexusAI CODEOWNERS Template
+#
+# Define path ownership mapping rules inside this repository.
+# GitHub uses these to automatically designate reviewers for Pull Requests.
+
+# Global fallback: Core service team or designated domain agent owns everything by default
+* @NexusAI/agent-skills
+
+# ==========================================
+# Specialized AI Agent Ownership Mappings
+# ==========================================
+# Depending on the repository's domain, the corresponding AI agent must be designated:
+#
+# Gateway Repository:
+# * @NexusAI/agent-gateway
+#
+# Knowledge Repository:
+# * @NexusAI/agent-knowledge
+#
+# Skills Repository:
+# * @NexusAI/agent-skills
+#
+# Security Sensitive (e.g., Auth, Secrets Management):
+# /src/infrastructure/auth/ @NexusAI/agent-security
+# /src/infrastructure/secrets/ @NexusAI/agent-security
+#
+# Architecture & Standards:
+# /docs/adr/ @NexusAI/agent-solution-architect
+# /docs/architecture/ @NexusAI/agent-solution-architect
+
+# ==========================================
+# Core Infrastructure & Operational Rules
+# ==========================================
+
+# Operational & Deployment Configs: DevOps and Security must sign off
+/deployments/ @NexusAI/team-devops @NexusAI/team-security
+/Dockerfile* @NexusAI/team-devops
+/.github/workflows/ @NexusAI/team-devops
+
+# Architecture & Standards: Platform Architect & Lead Agent review
+/docs/adr/ @NexusAI/team-platform
+/docs/architecture/ @NexusAI/team-platform
