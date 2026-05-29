@@ -1,11 +1,9 @@
 import fastify from "fastify";
 import cors from "@fastify/cors";
-import { SkillRegistry } from "./registry.js";
-import { PolicyEngine } from "./policy.js";
+import { registry, policyEngine } from "./shared.js";
+import { ExecuteSkill } from "./runtime.js";
 
 const server = fastify({ logger: true });
-const registry = new SkillRegistry();
-const policyEngine = new PolicyEngine();
 
 // Register CORS for multi-domain calls
 await server.register(cors, {
@@ -61,6 +59,34 @@ server.delete("/api/skills/:id", async (request, reply) => {
   return { message: "Skill successfully revoked" };
 });
 
+// Execute a skill (Step 18A skill invocation lifecycle endpoint)
+server.post("/api/skills/execute", async (request, reply) => {
+  try {
+    const executionResponse = await ExecuteSkill(request.body);
+    const httpSuccess = executionResponse.status === "success";
+    const statusCode = executionResponse.status === "forbidden"
+      ? 403
+      : (executionResponse.status === "failed" ? 400 : 200);
+
+    return reply.status(statusCode).send({
+      success: httpSuccess,
+      data: executionResponse.result,
+      meta: executionResponse.audit,
+      error: executionResponse.error || null
+    });
+  } catch (error: any) {
+    return reply.status(500).send({
+      success: false,
+      data: null,
+      meta: {
+        requestedAt: new Date().toISOString(),
+        completedAt: new Date().toISOString()
+      },
+      error: `Internal server error during execution: ${error.message}`
+    });
+  }
+});
+
 // Bootstrap server
 const start = async () => {
   try {
@@ -74,3 +100,6 @@ const start = async () => {
 };
 
 start();
+
+// Export runtime API for internal programmatic consumption
+export { ExecuteSkill, globalRuntime, RuntimeEngine } from "./runtime.js";
