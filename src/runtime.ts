@@ -359,10 +359,13 @@ export class RuntimeEngine {
     // 2. Check rate limit
     const rateLimit = this.registry.checkRateLimit(skillId);
     if (!rateLimit.allowed) {
+      const resetTime = rateLimit.resetAt > 0
+        ? new Date(rateLimit.resetAt).toISOString()
+        : "shortly";
       return {
         status: "failed",
         result: null,
-        error: `Rate limit exceeded. Retry after ${new Date(rateLimit.resetAt).toISOString()}`,
+        error: `Rate limit exceeded. Retry after ${resetTime}`,
         audit: {
           requestedAt,
           completedAt: new Date().toISOString(),

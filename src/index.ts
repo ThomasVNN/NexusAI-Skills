@@ -3,13 +3,27 @@ import cors from "@fastify/cors";
 import { registry, policyEngine } from "./shared.js";
 import { ExecuteSkill, globalRuntime } from "./runtime.js";
 import { Skill, SkillCategory } from "./registry.js";
+import { authMiddleware } from "./middleware/auth.js";
 
 const server = fastify({ logger: true });
 
+// Parse allowed origins from environment variable
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+  : ["http://localhost:3000", "http://localhost:8080"];
+
 // Register CORS for multi-domain calls
 await server.register(cors, {
-  origin: true,
-  methods: ["GET", "POST", "DELETE", "PUT"]
+  origin: allowedOrigins,
+  methods: ["GET", "POST", "DELETE", "PUT"],
+  credentials: true,
+});
+
+// Apply authentication middleware to all routes except health
+server.addHook('preHandler', async (request, reply) => {
+  if (!request.url.startsWith('/health')) {
+    await authMiddleware(request, reply);
+  }
 });
 
 // Health endpoint
