@@ -7,18 +7,17 @@ ENV CI=true
 # Install build dependencies
 RUN apt-get update && apt-get install -y openssl curl && rm -rf /var/lib/apt/lists/*
 
-COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* ./
-
-# Install all dependencies
-RUN npm install -g pnpm && pnpm install --ignore-scripts
-
+# Copy source first
 COPY . .
 
+# Install dependencies with npm
+RUN npm install
+
 # Build TypeScript
-RUN pnpm build
+RUN npm run build
 
 EXPOSE 8083
 ENV PORT=8083
 ENV NODE_ENV=production
 
-CMD ["pnpm", "start"]
+CMD ["node", "dist/index.js"]
