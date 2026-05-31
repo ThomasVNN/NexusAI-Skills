@@ -22,12 +22,17 @@
   "dependencies": {
     "@fastify/cors": "^9.0.1",
     "dotenv": "^16.4.5",
+    "fast-uri": "^3.1.2",
     "fastify": "^4.26.2",
     "pino": "^8.20.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/node": "^20.12.7",
+    "@typescript-eslint/eslint-plugin": "^8.60.0",
+    "@typescript-eslint/parser": "^8.60.0",
+    "@vitest/coverage-v8": "^1.6.1",
+    "eslint": "^10.4.1",
     "tsx": "^4.7.2",
     "typescript": "^5.4.5",
     "vitest": "^1.5.0"
