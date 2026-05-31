@@ -1,29 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import type { ExecutionStats, SkillAnalytics } from '../api/types';
+import { getExecutionStats, getAnalytics } from '../api/skills-api';
 
-interface StatsOverviewProps {
-  refreshInterval?: number;
-}
-
-export function StatsOverview({ refreshInterval = 30000 }: StatsOverviewProps) {
+export function StatsOverview() {
   const [stats, setStats] = useState<ExecutionStats | null>(null);
   const [analytics, setAnalytics] = useState<SkillAnalytics[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, refreshInterval);
+    const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
-  }, [refreshInterval]);
+  }, []);
 
   const fetchData = async () => {
     try {
       const [statsRes, analyticsRes] = await Promise.all([
-        fetch('/api/skills/stats'),
-        fetch('/api/skills/analytics'),
+        getExecutionStats(),
+        getAnalytics(),
       ]);
-      setStats(await statsRes.json());
-      setAnalytics(await analyticsRes.json());
+      setStats(statsRes);
+      setAnalytics(analyticsRes);
     } catch (error) {
       console.error('Failed to fetch stats:', error);
     } finally {
@@ -36,8 +33,8 @@ export function StatsOverview({ refreshInterval = 30000 }: StatsOverviewProps) {
       <div className="grid grid-cols-4 gap-4">
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="card animate-pulse">
-            <div className="h-8 bg-slate-700 rounded mb-2" />
-            <div className="h-4 bg-slate-700 rounded w-2/3" />
+            <div className="h-8 bg-bg-elevated rounded mb-2" />
+            <div className="h-4 bg-bg-elevated rounded w-2/3" />
           </div>
         ))}
       </div>
@@ -57,13 +54,14 @@ export function StatsOverview({ refreshInterval = 30000 }: StatsOverviewProps) {
           value={stats.totalExecutions}
           icon={<TotalIcon />}
           trend={stats.totalExecutions > 0 ? '+12%' : undefined}
+          trendUp
         />
         <StatCard
           label="Success Rate"
           value={`${successRate}%`}
           icon={<SuccessIcon />}
           trend={successRate >= 90 ? 'Good' : 'Needs attention'}
-          trendColor={successRate >= 90 ? 'text-green-400' : 'text-yellow-400'}
+          trendUp={successRate >= 90}
         />
         <StatCard
           label="Avg Duration"
@@ -78,71 +76,39 @@ export function StatsOverview({ refreshInterval = 30000 }: StatsOverviewProps) {
         />
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-2 gap-4">
-        {/* Execution Trend Chart */}
-        <div className="card">
-          <h3 className="text-lg font-semibold text-white mb-4">Execution Trend</h3>
-          <div className="h-48 flex items-end gap-2">
-            {[65, 45, 78, 52, 90, 73, 85, 68, 92, 76, 88, 80].map((value, i) => (
-              <div
-                key={i}
-                className="flex-1 bg-gradient-to-t from-primary-600 to-primary-400 rounded-t transition-all hover:from-primary-500 hover:to-primary-300"
-                style={{ height: `${value}%` }}
-              />
-            ))}
-          </div>
-          <div className="flex justify-between mt-2 text-xs text-slate-500">
-            <span>Jan</span>
-            <span>Dec</span>
-          </div>
-        </div>
-
-        {/* Category Distribution */}
-        <div className="card">
-          <h3 className="text-lg font-semibold text-white mb-4">By Category</h3>
-          <div className="space-y-4">
-            {[
-              { name: 'Data', count: analytics.filter((a) => a.totalExecutions > 0).length, color: 'bg-blue-500' },
-              { name: 'Legal', count: analytics.filter((a) => a.totalExecutions > 0).length, color: 'bg-purple-500' },
-              { name: 'Code', count: analytics.filter((a) => a.totalExecutions > 0).length, color: 'bg-green-500' },
-            ].map((cat) => (
-              <div key={cat.name} className="flex items-center gap-3">
-                <div className={`w-3 h-3 rounded-full ${cat.color}`} />
-                <span className="text-slate-400 flex-1">{cat.name}</span>
-                <span className="text-white font-medium">{cat.count} skills</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* Top Skills */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-white mb-4">Most Used Skills</h3>
+        <h3 className="text-lg font-semibold text-text-primary mb-4">Most Used Skills</h3>
         <div className="space-y-3">
           {analytics
             .sort((a, b) => b.totalExecutions - a.totalExecutions)
             .slice(0, 5)
-            .map((skill, index) => (
-              <div key={skill.skillId} className="flex items-center gap-4">
-                <span className="text-slate-500 w-6">#{index + 1}</span>
-                <div className="flex-1">
-                  <div className="text-white font-medium">{skill.skillId}</div>
-                  <div className="text-sm text-slate-400">
-                    {skill.totalExecutions} executions • {Math.round(skill.errorRate * 100)}% error rate
+            .map((skill, index) => {
+              const maxExec = analytics[0]?.totalExecutions || 1;
+              const percentage = Math.round((skill.totalExecutions / maxExec) * 100);
+              
+              return (
+                <div key={skill.skillId} className="flex items-center gap-4">
+                  <span className="text-text-tertiary w-5 text-sm">#{index + 1}</span>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-medium text-text-primary">{skill.skillName}</span>
+                      <span className="text-xs text-text-tertiary">
+                        {skill.totalExecutions} executions · {Math.round(skill.errorRate * 100)}% errors
+                      </span>
+                    </div>
+                    <div className="progress-bar">
+                      <div
+                        className="progress-bar-fill bg-accent-primary"
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
                   </div>
                 </div>
-                <div className="w-24 h-2 bg-slate-700 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary-500 rounded-full"
-                    style={{ width: `${Math.min(100, (skill.totalExecutions / Math.max(...analytics.map((a) => a.totalExecutions), 1)) * 100)}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           {analytics.length === 0 && (
-            <p className="text-slate-500 text-center py-4">No execution data yet</p>
+            <p className="text-text-tertiary text-center py-4">No execution data yet</p>
           )}
         </div>
       </div>
@@ -155,28 +121,28 @@ function StatCard({
   value,
   icon,
   trend,
-  trendColor = 'text-green-400',
+  trendUp,
   highlight = false,
 }: {
   label: string;
   value: string | number;
   icon: React.ReactNode;
   trend?: string;
-  trendColor?: string;
+  trendUp?: boolean;
   highlight?: boolean;
 }) {
   return (
-    <div className={`card ${highlight ? 'border-yellow-500/50' : ''}`}>
-      <div className="flex items-center gap-3 mb-2">
-        <div className="p-2 rounded-lg bg-slate-700 text-primary-400">{icon}</div>
+    <div className={`card ${highlight ? 'border-warning/30 bg-warning/5' : ''}`}>
+      <div className="flex items-center gap-3 mb-3">
+        <div className="p-2.5 rounded-xl bg-accent-primary/10 text-accent-primary">{icon}</div>
         {trend && (
-          <span className={`text-sm ${trendColor}`}>
-            {trend}
+          <span className={`text-sm ${trendUp ? 'text-success' : 'text-warning'}`}>
+            {trendUp ? '↑' : '↓'} {trend}
           </span>
         )}
       </div>
-      <div className="text-2xl font-bold text-white">{value}</div>
-      <div className="text-sm text-slate-400">{label}</div>
+      <div className="text-2xl font-bold text-text-primary">{value}</div>
+      <div className="text-sm text-text-tertiary">{label}</div>
     </div>
   );
 }
