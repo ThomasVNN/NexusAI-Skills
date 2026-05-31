@@ -1,0 +1,69 @@
+# pnpm-lock.yaml v6.0
+lockfileVersion: 6.0
+
+settings:
+  autoInstallPeers: true
+
+importers:
+
+  .:
+    dependencies:
+      '@fastify/cors':
+        specifier: ^9.0.1
+        version: 9.0.1
+      dotenv:
+        specifier: ^16.4.5
+        version: 16.4.5
+      fastify:
+        specifier: ^4.26.2
+        version: 4.29.1
+      pino:
+        specifier: ^8.20.0
+        version: 8.21.0
+      zod:
+        specifier: ^3.22.4
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^20.12.7
+        version: 20.19.41
+      tsx:
+        specifier: ^4.7.2
+        version: 4.22.3
+      typescript:
+        specifier: ^5.4.5
+        version: 5.9.3
+      vitest:
+        specifier: ^1.5.0
+        version: 1.6.1
+
+packages:
+
+  '@fastify/cors@9.0.1':
+    resolution: {integrity: sha512-1Ug38GMGDoOBnJ4Wnb0uLLy8Ht1eX4Gm/IJvv7jO9GkLFuJhum+2FMZ1U1XQYtM//0s7aUq3BMC1E0V7eJi7Ew==}
+    engines: {node: '>=14.18'}
+
+  '@types/node@20.19.41':
+    resolution: {integrity: sha512-6v9F9P2v0z8z8zPboGOOJVqYkI9qMxmAWPijEiTSvHkEjGXH3MYL2NAG3MIKyHgOQ+knN/gKPCIluSYzj9h9eQ==}
+
+  dotenv@16.4.5:
+    resolution: {integrity: sha512-NmLuK/j6UAVuBTbqF4MNsc7kKqYJvhra2PxqG3J+LCJYN5JLLi9nSYUJM7+8MN4OFsZjpNkz1wWJE2v5rF/jDA==}
+
+  fastify@4.29.1:
+    resolution: {integrity: sha512-r1x05X1kN+SEwYEW6COE7uAC8/C1qLh7UsyV0JMB8Mr8dZM8sDnbXam7p5u/H1vS7FM8F3kPPe1vPdF9ZWQv5g==}
+
+  pino@8.21.0:
+    resolution: {integrity: sha512-4LG9xev7qhRqQpAMqrKoSAJvKfvEQWT2nL0bmNMQVPHT5V3bYgLftLhq3l9V8xgKqJpp4yJfdWXk1k0N5r+TLTQ==}
+
+  tsx@4.22.3:
+    resolution: {integrity: sha512-0k1D4x4yHPP6xBhhG2+5jZMjn1bBC2GTHjSeG9hJqPbNXPNumh0tqS7KqvJ7LhLhHE6Pz+5p7mLnRFvPJGdWvg==}
+    engines: {node: '>=18.0.0'}
+
+  typescript@5.9.3:
+    resolution: {integrity: sha512-N/KY3+6SHvZJ7jlMk/ARhZAzohR5xPl5VZ3pLL1E+PGrG5+83du1+U0ZJyjpcZHG6V8TI4HhxY0gG9JxqA7Ekw==}
+
+  vitest@1.6.1:
+    resolution: {integrity: sha512-2Xl/o9g6z36jnAFvE85P8wZL/JQ8YXV2A8zL6rT96oVnTC7zVLC4YY5lrl7MhXaU2i9lDDqH4NJJ5Pji/iqKx1w==}
+
+  zod@3.25.76:
+    resolution: {integrity: sha512-0pbWnPpL3xVo9kMOZDM9W+R0MDE2b0J84K1JBDnITyApn6K7f2Thh6j1v7C9G/qJH2CRjE0GwowHlj5d7f4V8w==}
