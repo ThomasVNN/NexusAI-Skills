@@ -7,7 +7,7 @@
  * - Tool registration and discovery
  */
 
-import { Tool } from "../skills.interface.js";
+import { Tool } from "../internal/skills.interface.js";
 import { ExecuteSkill } from "../runtime.js";
 
 // MCP Protocol types

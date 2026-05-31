@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { McpServer } from "../src/internal/mcp/mcp.js";
 import { LegalCitationTool } from "../src/internal/tools/tools.js";
 import { DatabaseConnector } from "../src/internal/connectors/connectors.js";
-import { SequentialWorkflowEngine } from "../src/internal/workflow/workflow.js";
+import { WorkflowEngine } from "../src/internal/workflow/workflow.js";
 import { SandboxedExecutor } from "../src/internal/execution/execution.js";
 
 describe("Skills Internal Runtime Abstractions", () => {
@@ -32,8 +32,8 @@ describe("Skills Internal Runtime Abstractions", () => {
     expect(bad).toBe(false);
   });
 
-  it("SequentialWorkflowEngine should execute tool chain sequentially", async () => {
-    const engine = new SequentialWorkflowEngine();
+  it("WorkflowEngine should execute tool chain sequentially", async () => {
+    const engine = new WorkflowEngine();
     const tool = new LegalCitationTool();
     engine.registerTool(tool);
 

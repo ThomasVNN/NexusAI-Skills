@@ -4,7 +4,7 @@
  * Enables AI agents to interact with ServiceNow ITSM: create tickets, query SLAs, trigger workflows
  */
 
-import { Connector, Tool } from "./skills.interface.js";
+import { Connector, Tool } from "../skills.interface.js";
 
 /**
  * ServiceNow API Configuration

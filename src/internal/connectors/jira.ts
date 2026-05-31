@@ -4,7 +4,7 @@
  * Enables AI agents to create, update, and query Jira issues with proper auth
  */
 
-import { Connector, Tool } from "./skills.interface.js";
+import { Connector, Tool } from "../skills.interface.js";
 
 /**
  * Jira API Configuration
