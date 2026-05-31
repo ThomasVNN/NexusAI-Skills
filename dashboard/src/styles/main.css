@@ -1,0 +1,231 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: dark;
+  color: #FAFAFA;
+  background-color: #0A0A0B;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#root {
+  width: 100%;
+}
+
+@layer components {
+  /* Cards - flat, border-based */
+  .card {
+    @apply bg-bg-card rounded-xl p-5 border border-border-subtle;
+  }
+  
+  .card-hover {
+    @apply card hover:border-border-default transition-all duration-200 cursor-pointer;
+  }
+
+  /* Buttons - rounded, subtle hover */
+  .btn-primary {
+    @apply bg-accent-primary hover:bg-accent-muted text-white px-4 py-2.5 rounded-lg font-medium transition-all duration-200 flex items-center gap-2;
+  }
+  
+  .btn-secondary {
+    @apply bg-bg-elevated hover:bg-border-subtle text-text-primary px-4 py-2.5 rounded-lg font-medium transition-all duration-200 border border-border-subtle;
+  }
+  
+  .btn-danger {
+    @apply bg-error-muted hover:bg-error text-white px-4 py-2.5 rounded-lg font-medium transition-all duration-200;
+  }
+  
+  .btn-success {
+    @apply bg-success-muted hover:bg-success text-white px-4 py-2.5 rounded-lg font-medium transition-all duration-200;
+  }
+  
+  .btn-ghost {
+    @apply bg-transparent hover:bg-bg-elevated text-text-secondary hover:text-text-primary px-3 py-2 rounded-lg transition-all duration-200;
+  }
+
+  /* Inputs - clean styling */
+  .input {
+    @apply bg-bg-secondary border border-border-subtle rounded-lg px-4 py-2.5 text-text-primary placeholder-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition-all duration-200;
+  }
+  
+  .input-sm {
+    @apply input px-3 py-1.5 text-sm;
+  }
+
+  /* Badges/Tags - small rounded pills */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  
+  .badge-success {
+    @apply badge bg-success/20 text-success;
+  }
+  
+  .badge-warning {
+    @apply badge bg-warning/20 text-warning;
+  }
+  
+  .badge-danger {
+    @apply badge bg-error/20 text-error;
+  }
+  
+  .badge-info {
+    @apply badge bg-info/20 text-info;
+  }
+  
+  .badge-purple {
+    @apply badge bg-accent-primary/20 text-accent-primary;
+  }
+
+  /* Category badges */
+  .badge-data {
+    @apply badge bg-cat-data/20 text-cat-data;
+  }
+  
+  .badge-legal {
+    @apply badge bg-cat-legal/20 text-cat-legal;
+  }
+  
+  .badge-code {
+    @apply badge bg-cat-code/20 text-cat-code;
+  }
+  
+  .badge-general {
+    @apply badge bg-cat-general/20 text-cat-general;
+  }
+
+  /* Status dots */
+  .status-dot {
+    @apply w-2 h-2 rounded-full;
+  }
+  
+  .status-dot-success {
+    @apply status-dot bg-success;
+  }
+  
+  .status-dot-warning {
+    @apply status-dot bg-warning;
+  }
+  
+  .status-dot-error {
+    @apply status-dot bg-error;
+  }
+  
+  .status-dot-info {
+    @apply status-dot bg-info animate-pulse;
+  }
+
+  /* Tables - zebra striping */
+  .table-container {
+    @apply w-full overflow-x-auto rounded-xl border border-border-subtle;
+  }
+  
+  .table {
+    @apply w-full text-sm;
+  }
+  
+  .table thead {
+    @apply bg-bg-secondary;
+  }
+  
+  .table th {
+    @apply px-4 py-3 text-left text-xs font-medium text-text-tertiary uppercase tracking-wider;
+  }
+  
+  .table tbody tr {
+    @apply border-b border-border-subtle last:border-0;
+  }
+  
+  .table tbody tr:nth-child(odd) {
+    @apply bg-bg-card;
+  }
+  
+  .table tbody tr:nth-child(even) {
+    @apply bg-bg-secondary/50;
+  }
+  
+  .table tbody tr:hover {
+    @apply bg-bg-elevated/50;
+  }
+  
+  .table td {
+    @apply px-4 py-3 text-text-secondary;
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    @apply h-1.5 bg-bg-secondary rounded-full overflow-hidden;
+  }
+  
+  .progress-bar-fill {
+    @apply h-full rounded-full transition-all duration-300;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    @apply w-2 h-2;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-bg-secondary rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border-subtle rounded-full hover:bg-border-default;
+  }
+}
+
+/* Animations */
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+/* Log viewer */
+.log-viewer {
+  @apply bg-bg-primary rounded-lg p-4 font-mono text-xs overflow-x-auto;
+}
+
+.log-line {
+  @apply py-0.5;
+}
+
+.log-line-error {
+  @apply log-line text-error;
+}
+
+.log-line-warn {
+  @apply log-line text-warning;
+}
+
+.log-line-info {
+  @apply log-line text-info;
+}
+
+.log-line-debug {
+  @apply log-line text-text-tertiary;
+}
