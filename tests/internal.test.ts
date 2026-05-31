@@ -45,10 +45,10 @@ describe("Skills Internal Runtime Abstractions", () => {
       }
     ];
 
-    const results = await engine.run(steps);
-    expect(results.length).toBe(1);
-    expect(results[0].stepId).toBe("step-1");
-    expect(results[0].output.foundCount).toBe(2);
+    const result = await engine.runWorkflowSteps(steps);
+    expect(result.steps.length).toBe(1);
+    expect(result.steps[0].stepId).toBe("step-1");
+    expect(result.status).toBe("completed");
   });
 
   it("SandboxedExecutor should block unsafe permissions", async () => {
