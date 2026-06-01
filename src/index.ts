@@ -1,14 +1,16 @@
 import fastify from "fastify";
 import cors from "@fastify/cors";
-import { registry, policyEngine } from "./shared.js";
+import { registry, policyEngine, CORS_ORIGINS } from "./shared.js";
 import { ExecuteSkill } from "./runtime.js";
 
 const server = fastify({ logger: true });
 
-// Register CORS for multi-domain calls
+// Register CORS with explicit origins configuration
+// SECURITY: HIGH-003 - Never use origin: true in production
 await server.register(cors, {
-  origin: true,
-  methods: ["GET", "POST", "DELETE"]
+  origin: CORS_ORIGINS.length > 0 ? CORS_ORIGINS : false,
+  methods: ["GET", "POST", "DELETE"],
+  credentials: true,
 });
 
 // Health endpoint
