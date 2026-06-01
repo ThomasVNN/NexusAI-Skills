@@ -7,11 +7,14 @@ ENV CI=true
 # Install build dependencies
 RUN apt-get update && apt-get install -y openssl curl && rm -rf /var/lib/apt/lists/*
 
-# Copy source first
-COPY . .
+# Copy package files first for better layer caching
+COPY package*.json ./
 
-# Install dependencies with npm
-RUN npm install
+# Install dependencies with clean install (more reliable in Docker)
+RUN npm ci --prefer-offline --no-audit --no-fund || npm install --prefer-offline --no-audit --no-fund
+
+# Copy source
+COPY . .
 
 # Build TypeScript
 RUN npm run build
