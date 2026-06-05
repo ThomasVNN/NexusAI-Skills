@@ -10,6 +10,8 @@ This file serves as your local operational blueprint, defining your role, bounda
 
 The mission of **NexusAI-Skills** is to provide highly performant, modular, secure, and observable capabilities for the **AI Execution Platform** domain. Every change implemented here must move us closer to a production-grade, highly-available architecture.
 
+**Note:** This repository is backend-only. The admin dashboard was migrated to `Nexus-Control-Center/src/features/skills/`. Do not reintroduce UI code here.
+
 ---
 
 # Owner Agent
