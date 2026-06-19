@@ -2,6 +2,9 @@ import fastify from "fastify";
 import cors from "@fastify/cors";
 import { registry, policyEngine, CORS_ORIGINS } from "./shared.js";
 import { ExecuteSkill } from "./runtime.js";
+import { registerMCPRoutes } from "./internal/mcp/mcp_routes.js";
+import { registerJSONRPCRoutes } from "./internal/mcp/jsonrpc.js";
+import { registerA2ARoutes } from "./internal/a2a/routes.js";
 
 const server = fastify({ logger: true });
 
@@ -12,6 +15,15 @@ await server.register(cors, {
   methods: ["GET", "POST", "DELETE"],
   credentials: true,
 });
+
+// Register MCP routes (/api/mcp/v1/*)
+await registerMCPRoutes(server);
+
+// Register JSON-RPC routes (/api/rpc)
+await registerJSONRPCRoutes(server);
+
+// Register A2A routes (/api/agents/*)
+await registerA2ARoutes(server);
 
 // Liveness probe — returns 200 if the server is up
 server.get("/healthz", async () => {
@@ -32,6 +44,23 @@ server.get("/ready", async (request, reply) => {
 // Legacy /health endpoint (kept for backwards compatibility)
 server.get("/health", async () => {
   return { status: "ok", service: "nexusai-skills" };
+});
+
+// Prometheus metrics endpoint
+server.get("/metrics", async () => {
+  const skills = registry.listSkills();
+  
+  const metrics = [
+    '# HELP nexusai_skills_up Whether the skills service is up',
+    '# TYPE nexusai_skills_up gauge',
+    'nexusai_skills_up 1',
+    '',
+    '# HELP nexusai_skills_registered Number of registered skills',
+    '# TYPE nexusai_skills_registered gauge',
+    `nexusai_skills_registered ${skills.length}`,
+  ];
+  
+  return metrics.join('\n');
 });
 
 // List all registered skills
