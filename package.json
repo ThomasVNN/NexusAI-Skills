@@ -8,26 +8,34 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push"
   },
   "keywords": [
     "skills",
     "mcp",
     "registry",
     "agents",
-    "nexusai"
+    "nexusai",
+    "prometheus",
+    "observability"
   ],
   "author": "NexusAI Team",
   "license": "MIT",
   "dependencies": {
     "@fastify/cors": "^10.0.1",
+    "@prisma/client": "^5.14.0",
     "dotenv": "^16.4.5",
     "fastify": "^5.1.0",
     "pino": "^8.20.0",
+    "prom-client": "^15.1.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/node": "^20.12.7",
+    "prisma": "^5.14.0",
     "tsx": "^4.7.2",
     "typescript": "^5.4.5",
     "vitest": "^1.5.0"
