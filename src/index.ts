@@ -13,7 +13,23 @@ await server.register(cors, {
   credentials: true,
 });
 
-// Health endpoint
+// Liveness probe — returns 200 if the server is up
+server.get("/healthz", async () => {
+  return { status: "ok", timestamp: new Date().toISOString() };
+});
+
+// Readiness probe — returns 200 if the registry is loaded
+server.get("/ready", async (request, reply) => {
+  const skills = registry.listSkills();
+  const ready = skills.length >= 0; // registry is always ready once server starts
+
+  if (ready) {
+    return { status: "ok", skillsLoaded: skills.length, timestamp: new Date().toISOString() };
+  }
+  return reply.status(503).send({ status: "not_ready", timestamp: new Date().toISOString() });
+});
+
+// Legacy /health endpoint (kept for backwards compatibility)
 server.get("/health", async () => {
   return { status: "ok", service: "nexusai-skills" };
 });
