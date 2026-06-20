@@ -271,7 +271,7 @@ export class PrismaSkillStorage implements SkillStorage {
       orderBy: { createdAt: "desc" },
       take: limit,
     });
-    return executions.map((e) => ({
+    return executions.map((e: SkillExecutionRecord) => ({
       id: e.id,
       skillId: e.skillId,
       userId: e.userId || undefined,
