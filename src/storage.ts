@@ -266,12 +266,12 @@ export class PrismaSkillStorage implements SkillStorage {
 
   async getExecutions(skillId: string, limit = 100): Promise<SkillExecutionRecord[]> {
     const prisma = getPrismaClient();
-    const executions = await prisma.skillExecution.findMany({
+    const rawExecutions = await prisma.skillExecution.findMany({
       where: { skillId },
       orderBy: { createdAt: "desc" },
       take: limit,
     });
-    return executions.map((e) => ({
+    return (rawExecutions as unknown as SkillExecutionRecord[]).map((e) => ({
       id: e.id,
       skillId: e.skillId,
       userId: (e.userId as string) || undefined,
