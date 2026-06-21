@@ -15,6 +15,9 @@ model Skill {
   id          String   @id @default(cuid())
   name        String   @unique
   description String?
+  capability  String   @default("general") // e.g., "code-generation", "legal-research", "data-analysis"
+  tags        String[] @default([])        // e.g., ["typescript", "react", "testing"]
+  content     String?                     // Full skill content/instructions
   version     String
   author      String?
   codeUrl     String?
@@ -26,9 +29,27 @@ model Skill {
 
   // Relations
   executions SkillExecution[]
+  versions  SkillVersion[]
 
   @@index([name])
   @@index([status])
+  @@index([capability])
+}
+
+// SkillVersion tracks skill version history for auditing
+model SkillVersion {
+  id        String   @id @default(cuid())
+  skillId   String
+  version   String
+  changes   String?  // Description of changes in this version
+  content   String? // Snapshot of skill content at this version
+  createdAt DateTime @default(now())
+
+  // Relations
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@index([skillId])
+  @@index([version])
 }
 
 // SkillExecution tracks skill execution history for auditing

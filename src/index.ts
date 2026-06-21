@@ -2,6 +2,8 @@ import fastify from "fastify";
 import cors from "@fastify/cors";
 import { registry, policyEngine, CORS_ORIGINS } from "./shared.js";
 import { ExecuteSkill } from "./runtime.js";
+import { initializeStorage } from "./storage.js";
+import { registerSkillRoutes } from "./routes/skill-routes.js";
 
 const server = fastify({ logger: true });
 
@@ -9,9 +11,18 @@ const server = fastify({ logger: true });
 // SECURITY: HIGH-003 - Never use origin: true in production
 await server.register(cors, {
   origin: CORS_ORIGINS.length > 0 ? CORS_ORIGINS : false,
-  methods: ["GET", "POST", "DELETE"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
 });
+
+// Initialize storage and register routes before starting server
+async function bootstrap() {
+  // Initialize PostgreSQL storage
+  await initializeStorage();
+  
+  // Register skill CRUD routes
+  await registerSkillRoutes(server);
+}
 
 // Liveness probe — returns 200 if the server is up
 server.get("/healthz", async () => {
@@ -108,6 +119,7 @@ server.post("/api/skills/execute", async (request, reply) => {
 // Bootstrap server
 const start = async () => {
   try {
+    await bootstrap();
     const port = Number(process.env.PORT) || 8083;
     await server.listen({ port, host: "0.0.0.0" });
     console.log(`🚀 NexusAI-Skills Server listening on port ${port}`);
