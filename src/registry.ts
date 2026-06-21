@@ -5,6 +5,9 @@ export const SkillSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string(),
+  capability: z.string().default("general"),
+  tags: z.array(z.string()).default([]),
+  content: z.string().optional(),
   version: z.string(),
   author: z.string(),
   codeUrl: z.string().url(),
@@ -15,6 +18,21 @@ export const SkillSchema = z.object({
 
 export type Skill = z.infer<typeof SkillSchema>;
 
+// Input schema for creating/updating skills (id is optional for creation)
+export const CreateSkillSchema = SkillSchema.omit({ id: true }).extend({
+  id: z.string().optional(),
+});
+export type CreateSkillInput = z.infer<typeof CreateSkillSchema>;
+
+// Search filters for skills
+export const SkillSearchSchema = z.object({
+  name: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  capability: z.string().optional(),
+  status: z.enum(["pending", "approved", "revoked"]).optional(),
+});
+export type SkillSearchFilters = z.infer<typeof SkillSearchSchema>;
+
 export class SkillRegistry {
   private skills = new Map<string, Skill>();
 
@@ -24,6 +42,9 @@ export class SkillRegistry {
       id: "vietnam-law-citations",
       name: "Vietnam Law Citation Matcher",
       description: "Extracts and visualizes legal citation paths for banking & IT domains",
+      capability: "legal-research",
+      tags: ["legal", "vietnam", "citations"],
+      content: "Skill for extracting and visualizing legal citation paths for banking & IT domains",
       version: "1.0.0",
       author: "NexusAI Architect",
       codeUrl: "http://skills-nexus/cdn/citation-matcher.js",

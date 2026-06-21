@@ -31,6 +31,18 @@ export interface SkillExecutionRecord {
 }
 
 /**
+ * Skill version record for version history
+ */
+export interface SkillVersionRecord {
+  id?: string;
+  skillId: string;
+  version: string;
+  changes?: string;
+  content?: string;
+  createdAt?: Date;
+}
+
+/**
  * Storage interface for skill persistence
  */
 export interface SkillStorage {
@@ -50,9 +62,9 @@ export interface SkillStorage {
   getSkillByName(name: string): Promise<Skill | null>;
 
   /**
-   * List all skills
+   * List all skills with optional filters
    */
-  listSkills(): Promise<Skill[]>;
+  listSkills(filters?: { name?: string; tags?: string[]; capability?: string }): Promise<Skill[]>;
 
   /**
    * Update a skill
@@ -63,6 +75,16 @@ export interface SkillStorage {
    * Delete a skill
    */
   deleteSkill(id: string): Promise<boolean>;
+
+  /**
+   * Get version history for a skill
+   */
+  getSkillVersions(skillId: string): Promise<SkillVersionRecord[]>;
+
+  /**
+   * Save a skill version
+   */
+  saveSkillVersion(version: SkillVersionRecord): Promise<void>;
 
   /**
    * Save a skill execution record
@@ -86,6 +108,7 @@ export interface SkillStorage {
 export class InMemorySkillStorage implements SkillStorage {
   private skills: Map<string, Skill> = new Map();
   private executions: SkillExecutionRecord[] = [];
+  private versions: SkillVersionRecord[] = [];
 
   async initialize(): Promise<void> {
     // No initialization needed for in-memory storage
@@ -95,6 +118,9 @@ export class InMemorySkillStorage implements SkillStorage {
         id: "vietnam-law-citations",
         name: "Vietnam Law Citation Matcher",
         description: "Extracts and visualizes legal citation paths for banking & IT domains",
+        capability: "legal-research",
+        tags: ["legal", "vietnam", "citations"],
+        content: "Skill for extracting and visualizing legal citation paths",
         version: "1.0.0",
         author: "NexusAI Architect",
         codeUrl: "http://skills-nexus/cdn/citation-matcher.js",
@@ -123,8 +149,23 @@ export class InMemorySkillStorage implements SkillStorage {
     return null;
   }
 
-  async listSkills(): Promise<Skill[]> {
-    return Array.from(this.skills.values());
+  async listSkills(filters?: { name?: string; tags?: string[]; capability?: string }): Promise<Skill[]> {
+    let skills = Array.from(this.skills.values());
+
+    if (filters?.name) {
+      const nameLower = filters.name.toLowerCase();
+      skills = skills.filter(s => s.name.toLowerCase().includes(nameLower));
+    }
+    if (filters?.tags && filters.tags.length > 0) {
+      skills = skills.filter(s =>
+        filters.tags!.some(tag => s.tags.includes(tag))
+      );
+    }
+    if (filters?.capability) {
+      skills = skills.filter(s => s.capability === filters.capability);
+    }
+
+    return skills;
   }
 
   async updateSkill(id: string, updates: Partial<Skill>): Promise<Skill | null> {
@@ -138,6 +179,20 @@ export class InMemorySkillStorage implements SkillStorage {
 
   async deleteSkill(id: string): Promise<boolean> {
     return this.skills.delete(id);
+  }
+
+  async saveSkillVersion(version: SkillVersionRecord): Promise<void> {
+    this.versions.push({
+      ...version,
+      id: version.id || crypto.randomUUID(),
+      createdAt: version.createdAt || new Date(),
+    });
+  }
+
+  async getSkillVersions(skillId: string): Promise<SkillVersionRecord[]> {
+    return this.versions
+      .filter(v => v.skillId === skillId)
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
   }
 
   async saveExecution(execution: SkillExecutionRecord): Promise<void> {
@@ -172,6 +227,9 @@ export class PrismaSkillStorage implements SkillStorage {
       update: {
         name: skill.name,
         description: skill.description,
+        capability: skill.capability,
+        tags: skill.tags,
+        content: skill.content,
         version: skill.version,
         author: skill.author,
         codeUrl: skill.codeUrl,
@@ -183,6 +241,9 @@ export class PrismaSkillStorage implements SkillStorage {
         id: skill.id,
         name: skill.name,
         description: skill.description,
+        capability: skill.capability,
+        tags: skill.tags,
+        content: skill.content,
         version: skill.version,
         author: skill.author,
         codeUrl: skill.codeUrl,
@@ -205,9 +266,22 @@ export class PrismaSkillStorage implements SkillStorage {
     return skill ? this.mapPrismaToSkill(skill) : null;
   }
 
-  async listSkills(): Promise<Skill[]> {
+  async listSkills(filters?: { name?: string; tags?: string[]; capability?: string }): Promise<Skill[]> {
     const prisma = getPrismaClient();
+    const whereClause: any = {};
+
+    if (filters?.name) {
+      whereClause.name = { contains: filters.name, mode: "insensitive" };
+    }
+    if (filters?.tags && filters.tags.length > 0) {
+      whereClause.tags = { hasSome: filters.tags };
+    }
+    if (filters?.capability) {
+      whereClause.capability = filters.capability;
+    }
+
     const skills = await prisma.skill.findMany({
+      where: whereClause,
       orderBy: { createdAt: "desc" },
     });
     return skills.map(this.mapPrismaToSkill);
@@ -215,11 +289,28 @@ export class PrismaSkillStorage implements SkillStorage {
 
   async updateSkill(id: string, updates: Partial<Skill>): Promise<Skill | null> {
     const prisma = getPrismaClient();
+
+    // Get current skill to save version before updating
+    const currentSkill = await prisma.skill.findUnique({ where: { id } });
+    if (currentSkill) {
+      // Save version history
+      await prisma.skillVersion.create({
+        data: {
+          skillId: id,
+          version: currentSkill.version,
+          content: currentSkill.content || undefined,
+        },
+      });
+    }
+
     const skill = await prisma.skill.update({
       where: { id },
       data: {
         name: updates.name,
         description: updates.description,
+        capability: updates.capability,
+        tags: updates.tags,
+        content: updates.content,
         version: updates.version,
         author: updates.author,
         codeUrl: updates.codeUrl,
@@ -239,6 +330,34 @@ export class PrismaSkillStorage implements SkillStorage {
     } catch {
       return false;
     }
+  }
+
+  async saveSkillVersion(version: SkillVersionRecord): Promise<void> {
+    const prisma = getPrismaClient();
+    await prisma.skillVersion.create({
+      data: {
+        skillId: version.skillId,
+        version: version.version,
+        changes: version.changes,
+        content: version.content,
+      },
+    });
+  }
+
+  async getSkillVersions(skillId: string): Promise<SkillVersionRecord[]> {
+    const prisma = getPrismaClient();
+    const versions = await prisma.skillVersion.findMany({
+      where: { skillId },
+      orderBy: { createdAt: "desc" },
+    });
+    return versions.map(v => ({
+      id: v.id,
+      skillId: v.skillId,
+      version: v.version,
+      changes: v.changes || undefined,
+      content: v.content || undefined,
+      createdAt: v.createdAt,
+    }));
   }
 
   async saveExecution(execution: SkillExecutionRecord): Promise<void> {
@@ -290,6 +409,9 @@ export class PrismaSkillStorage implements SkillStorage {
     id: string;
     name: string;
     description: string | null;
+    capability: string;
+    tags: string[];
+    content: string | null;
     version: string;
     author: string | null;
     codeUrl: string | null;
@@ -301,6 +423,9 @@ export class PrismaSkillStorage implements SkillStorage {
       id: s.id,
       name: s.name,
       description: s.description || "",
+      capability: s.capability,
+      tags: s.tags || [],
+      content: s.content || undefined,
       version: s.version,
       author: s.author || "",
       codeUrl: s.codeUrl || "",
