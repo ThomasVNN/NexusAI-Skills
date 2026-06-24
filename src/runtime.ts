@@ -3,6 +3,7 @@ import { SkillRegistry, Skill } from "./registry.js";
 import { PolicyEngine } from "./policy.js";
 import { Tool } from "./internal/skills.interface.js";
 import { pino } from "pino";
+import { SkillSandbox, globalSandbox, DEFAULT_SANDBOX_CONFIG } from "./sandbox/executor.js";
 
 const logger = pino();
 
@@ -50,10 +51,14 @@ export class RuntimeEngine {
   private registry: SkillRegistry;
   private policyEngine: PolicyEngine;
   private tools = new Map<string, Map<string, Tool>>();
+  private sandbox: SkillSandbox;
+  private useSandbox: boolean;
 
-  constructor(registry: SkillRegistry, policyEngine: PolicyEngine) {
+  constructor(registry: SkillRegistry, policyEngine: PolicyEngine, useSandbox: boolean = true) {
     this.registry = registry;
     this.policyEngine = policyEngine;
+    this.useSandbox = useSandbox;
+    this.sandbox = globalSandbox;
   }
 
   /**
@@ -252,7 +257,36 @@ export class RuntimeEngine {
 
     // Run the actual tool execution
     try {
-      const executionResult = await tool.execute({ userId, skillId }, args);
+      let executionResult: Record<string, any>;
+
+      if (this.useSandbox) {
+        // Execute tool within sandboxed environment
+        const sandboxResult = await this.sandbox.execute(
+          {
+            skillId,
+            toolName,
+            args,
+            userId,
+          },
+          async (_ctx: any, _args: any) => {
+            return await tool.execute({ userId, skillId }, _args);
+          }
+        );
+
+        if (!sandboxResult.success) {
+          throw new Error(sandboxResult.error || "Sandboxed execution failed");
+        }
+
+        if (sandboxResult.sandboxViolations.length > 0) {
+          logger.warn({ skillId, violations: sandboxResult.sandboxViolations }, "Sandbox violations during execution");
+        }
+
+        executionResult = sandboxResult.output;
+      } else {
+        // Direct execution without sandbox (for trusted internal tools)
+        executionResult = await tool.execute({ userId, skillId }, args);
+      }
+
       const durationMs = this.calculateDurationMs(timerStart);
 
       logger.info({ skillId, toolName, durationMs }, "Execution completed successfully [Result Stage]");
@@ -272,8 +306,8 @@ export class RuntimeEngine {
             permissionsChecked: skill.permissions
           },
           sandbox: {
-            type: "v8-isolated",
-            sanitized: true,
+            type: this.useSandbox ? "v8-isolated" : "none",
+            sanitized: this.useSandbox,
             durationMs,
             safetyAssessment: "passed"
           }
@@ -298,8 +332,8 @@ export class RuntimeEngine {
             permissionsChecked: skill.permissions
           },
           sandbox: {
-            type: "v8-isolated",
-            sanitized: true,
+            type: this.useSandbox ? "v8-isolated" : "none",
+            sanitized: this.useSandbox,
             durationMs,
             safetyAssessment: "passed"
           }
